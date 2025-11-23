@@ -62,6 +62,10 @@
               "version": "[8.0.20, )",
               "autoReferenced": true
             },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.4, )"
+            },
             "Telegram.Bot": {
               "target": "Package",
               "version": "[22.7.5, )"

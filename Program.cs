@@ -1,4 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -6,10 +9,10 @@ using Telegram.Bot.Types.Enums;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
-builder.Services.ConfigureHttpJsonOptions(options =>
-{
-    options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
-});
+//builder.Services.ConfigureHttpJsonOptions(options =>
+//{
+//    options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
+//});
 
 
 // 1. Đọc Token từ appsettings.json
@@ -34,39 +37,70 @@ var app = builder.Build();
 // 3. TẠO WEBHOOK ENDPOINT
 // Đây là URL mà Telegram sẽ gọi mỗi khi có tin nhắn
 // Ví dụ: https://ten-mien-cua-ban.com/api/webhook
-app.MapPost("/api/webhook", async (
-    ITelegramBotClient botClient, // Lấy bot client đã đăng ký ở trên
-    [FromBody] Update update,     // Lấy nội dung (JSON) mà Telegram gửi
-    CancellationToken cancellationToken) =>
+app.MapPost("/api/webhook", async (HttpContext context, ITelegramBotClient botClient) =>
 {
-    // 4. Kiểm tra xem có phải là tin nhắn text không
-    if (update.Type == UpdateType.Message && update.Message?.Type == MessageType.Text)
+    // 1. Đọc dữ liệu thô (string) từ Telegram gửi đến
+    using var reader = new StreamReader(context.Request.Body);
+    var body = await reader.ReadToEndAsync();
+
+    var settings = new JsonSerializerSettings
     {
-        var message = update.Message;
-        var chatId = message.Chat.Id;
-        var messageText = message.Text;
+        ContractResolver = new DefaultContractResolver
+        {
+            NamingStrategy = new SnakeCaseNamingStrategy()
+        }
+    };
+    // 2. Dùng Newtonsoft để dịch chuỗi JSON sang object Update
+    // Cách này bỏ qua lỗi "TypeInfoResolver" bạn đang gặp
+    var update = JsonConvert.DeserializeObject<Update>(body, settings);
 
-        Console.WriteLine($"Received message from {chatId}: '{messageText}'");
+    // Kiểm tra Message (Chat riêng / Group)
+    if (update.Message != null && update.Message.Text != null)
+    {
+        var chatId = update.Message.Chat.Id;
+        var text = update.Message.Text;
+        Console.WriteLine($"User chat: {text}");
 
-        // 5. GỬI TIN NHẮN TRẢ LỜI (ECHO)
-        // Gửi lại chính nội dung tin nhắn đó
-        await botClient.SendMessage(
-            chatId: chatId,
-            text: $"Bạn vừa nói: {messageText}", // Đây là nội dung bot trả lời
-            cancellationToken: cancellationToken
-        );
+        // Xử lý logic tra cứu...
+        await botClient.SendMessage(chatId, $"Bot trả lời user: {text}");
+    }
+    // Kiểm tra ChannelPost (Tin nhắn từ Kênh)
+    else if (update.ChannelPost != null && update.ChannelPost.Text != null)
+    {
+        var chatId = update.ChannelPost.Chat.Id;
+        var text = update.ChannelPost.Text;
+        Console.WriteLine($"Channel post: {text}");
+
+        // Xử lý logic tra cứu...
+        // Lưu ý: Bot phải là Admin trong channel mới chat được vào channel
+        await botClient.SendMessage(chatId, $"Bot trả lời channel: {text}");
+    }
+    else
+    {
+        Console.WriteLine("Loại tin nhắn chưa hỗ trợ hoặc không có nội dung text.");
     }
 
-    // Báo cho Telegram biết là đã nhận OK
+    //// 3. Xử lý logic bot như cũ
+    //if (update.Type == UpdateType.Message && update.Message?.Type == MessageType.Text)
+    //{
+    //    var message = update.Message;
+    //    Console.WriteLine($"Nhận tin nhắn: {message.Text}");
+
+    //    await botClient.SendMessage(
+    //        chatId: message.Chat.Id,
+    //        text: $"Bạn vừa nói: {message.Text}"
+    //    );
+    //}
+
     return Results.Ok();
 });
 
 app.Run();
 
-public record Todo(int Id, string? Title, DateOnly? DueBy = null, bool IsComplete = false);
+//public record Todo(int Id, string? Title, DateOnly? DueBy = null, bool IsComplete = false);
 
-[JsonSerializable(typeof(Todo[]))]
-internal partial class AppJsonSerializerContext : JsonSerializerContext
-{
+//[JsonSerializable(typeof(Todo[]))]
+//internal partial class AppJsonSerializerContext : JsonSerializerContext
+//{
 
-}
+//}
