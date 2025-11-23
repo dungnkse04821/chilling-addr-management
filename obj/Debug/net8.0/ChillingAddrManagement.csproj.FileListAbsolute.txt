@@ -31,3 +31,11 @@ D:\Dung\Project\DotNet\ChillingAddrManagement\ChillingAddrManagement\obj\Debug\n
 D:\Dung\Project\DotNet\ChillingAddrManagement\ChillingAddrManagement\obj\Debug\net8.0\ChillingAddrManagement.genruntimeconfig.cache
 D:\Dung\Project\DotNet\ChillingAddrManagement\ChillingAddrManagement\obj\Debug\net8.0\ref\ChillingAddrManagement.dll
 D:\Dung\Project\DotNet\ChillingAddrManagement\ChillingAddrManagement\bin\Debug\net8.0\Newtonsoft.Json.dll
+D:\Dung\Project\DotNet\ChillingAddrManagement\ChillingAddrManagement\bin\Debug\net8.0\service_account.json
+D:\Dung\Project\DotNet\ChillingAddrManagement\ChillingAddrManagement\bin\Debug\net8.0\Google.Apis.dll
+D:\Dung\Project\DotNet\ChillingAddrManagement\ChillingAddrManagement\bin\Debug\net8.0\Google.Apis.Auth.dll
+D:\Dung\Project\DotNet\ChillingAddrManagement\ChillingAddrManagement\bin\Debug\net8.0\Google.Apis.Core.dll
+D:\Dung\Project\DotNet\ChillingAddrManagement\ChillingAddrManagement\bin\Debug\net8.0\Google.Apis.Sheets.v4.dll
+D:\Dung\Project\DotNet\ChillingAddrManagement\ChillingAddrManagement\bin\Debug\net8.0\System.CodeDom.dll
+D:\Dung\Project\DotNet\ChillingAddrManagement\ChillingAddrManagement\bin\Debug\net8.0\System.Management.dll
+D:\Dung\Project\DotNet\ChillingAddrManagement\ChillingAddrManagement\bin\Debug\net8.0\runtimes\win\lib\net7.0\System.Management.dll

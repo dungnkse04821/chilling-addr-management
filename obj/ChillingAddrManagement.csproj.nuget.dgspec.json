@@ -50,6 +50,10 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "Google.Apis.Sheets.v4": {
+              "target": "Package",
+              "version": "[1.72.0.3966, )"
+            },
             "Microsoft.DotNet.ILCompiler": {
               "suppressParent": "All",
               "target": "Package",
