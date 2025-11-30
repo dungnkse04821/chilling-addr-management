@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ChillingAddrManagement")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ad05a2c79bbbb6130d65a5ef6a422ae9e71c158f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+001414b46c7a38d7856d93c36b8a29d0f27d908f")]
 [assembly: System.Reflection.AssemblyProductAttribute("ChillingAddrManagement")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ChillingAddrManagement")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,6 +1,7 @@
 ﻿using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
 using Google.Apis.Sheets.v4;
+using Google.Apis.Sheets.v4.Data;
 
 namespace ChillingAddrManagement
 {
@@ -14,6 +15,24 @@ namespace ChillingAddrManagement
 
         // Đường dẫn đến file JSON Service Account
         private const string PathToServiceAccountKey = "service_account.json";
+
+        // 1. Hàm tạo Service (Tách ra để tái sử dụng)
+        private SheetsService GetService()
+        {
+            GoogleCredential credential;
+            using (var stream = new FileStream(PathToServiceAccountKey, FileMode.Open, FileAccess.Read))
+            {
+                credential = GoogleCredential.FromStream(stream)
+                    // QUAN TRỌNG: Đổi từ SpreadsheetsReadonly thành Spreadsheets (Quyền Ghi)
+                    .CreateScoped(SheetsService.Scope.Spreadsheets);
+            }
+
+            return new SheetsService(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = "TelegramBot"
+            });
+        }
 
         public async Task<List<LocationNote>> GetDataAsync()
         {
@@ -59,6 +78,34 @@ namespace ChillingAddrManagement
             }
 
             return results;
+        }
+
+        // 2. THÊM HÀM MỚI: Thêm dòng vào Sheet
+        public async Task AddRowAsync(LocationNote note)
+        {
+            var service = GetService();
+
+            // Tạo danh sách giá trị cần thêm (Thứ tự phải đúng với cột trong Excel)
+            var objectList = new List<object>()
+        {
+            note.Name,
+            note.Type,
+            note.Category,
+            note.Address,
+            note.City,
+            note.Note
+        };
+
+            var valueRange = new ValueRange();
+            valueRange.Values = new List<IList<object>> { objectList };
+
+            // AppendRequest: Yêu cầu nối thêm vào cuối
+            var appendRequest = service.Spreadsheets.Values.Append(valueRange, SpreadsheetId, $"{SheetName}!A:F");
+
+            // USER_ENTERED: Để Google tự hiểu định dạng (số, ngày tháng...)
+            appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
+
+            await appendRequest.ExecuteAsync();
         }
     }
 }
