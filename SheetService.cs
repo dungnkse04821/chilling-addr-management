@@ -23,7 +23,6 @@ namespace ChillingAddrManagement
             using (var stream = new FileStream(PathToServiceAccountKey, FileMode.Open, FileAccess.Read))
             {
                 credential = GoogleCredential.FromStream(stream)
-                    // QUAN TRỌNG: Đổi từ SpreadsheetsReadonly thành Spreadsheets (Quyền Ghi)
                     .CreateScoped(SheetsService.Scope.Spreadsheets);
             }
 
@@ -36,21 +35,7 @@ namespace ChillingAddrManagement
 
         public async Task<List<LocationNote>> GetDataAsync()
         {
-            // 1. Xác thực
-            GoogleCredential credential;
-            using (var stream = new FileStream(PathToServiceAccountKey, FileMode.Open, FileAccess.Read))
-            {
-                credential = GoogleCredential.FromStream(stream)
-                    .CreateScoped(SheetsService.Scope.SpreadsheetsReadonly);
-            }
-
-            // 2. Tạo service
-            var service = new SheetsService(new BaseClientService.Initializer()
-            {
-                HttpClientInitializer = credential,
-                ApplicationName = "TelegramBot"
-            });
-
+            var service = GetService();
             // 3. Đọc dữ liệu (Bỏ qua hàng đầu tiên là tiêu đề A1:F1)
             var range = $"{SheetName}!A2:F";
             var request = service.Spreadsheets.Values.Get(SpreadsheetId, range);
@@ -66,12 +51,13 @@ namespace ChillingAddrManagement
                     // Map dữ liệu từ Row vào Object (Đề phòng row thiếu cột)
                     var note = new LocationNote
                     {
-                        Name = row.Count > 0 ? row[0].ToString() : "",
-                        Type = row.Count > 1 ? row[1].ToString() : "",
-                        Category = row.Count > 2 ? row[2].ToString() : "",
-                        Address = row.Count > 3 ? row[3].ToString() : "",
-                        City = row.Count > 4 ? row[4].ToString() : "",
-                        Note = row.Count > 5 ? row[5].ToString() : ""
+                        // Dùng dấu ? và ?? "" để đảm bảo không bao giờ bị null
+                        Name = row.Count > 0 ? row[0]?.ToString() ?? "" : "",
+                        Type = row.Count > 1 ? row[1]?.ToString() ?? "" : "",
+                        Category = row.Count > 2 ? row[2]?.ToString() ?? "" : "",
+                        Address = row.Count > 3 ? row[3]?.ToString() ?? "" : "",
+                        City = row.Count > 4 ? row[4]?.ToString() ?? "" : "",
+                        Note = row.Count > 5 ? row[5]?.ToString() ?? "" : ""
                     };
                     results.Add(note);
                 }

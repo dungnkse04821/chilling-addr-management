@@ -62,63 +62,106 @@ app.MapPost("/api/webhook", async (HttpContext context, ITelegramBotClient botCl
         if (message != null && !string.IsNullOrEmpty(message.Text))
         {
             var chatId = message.Chat.Id;
-            var userText = message.Text.Trim().ToLower(); // Chuyển về chữ thường để dễ so sánh
+            var userText = message.Text.Trim(); // Không tolower vội, để giữ hoa thường khi nhập
             Console.WriteLine($"Nhận yêu cầu: {userText}");
 
-            // --- BẮT ĐẦU LOGIC TRA CỨU ---
-
-            // 1. Lấy toàn bộ dữ liệu từ Google Sheet
-            var allData = await sheetService.GetDataAsync();
-            string responseText = "";
-
-            // LOGIC 1: Tìm chính xác theo Tên (Name) hoặc Loại (Type) -> Trả về chi tiết
-            var matchItem = allData.FirstOrDefault(x =>
-                x.Name.ToLower().Contains(userText) ||
-                x.Type.ToLower() == userText);
-
-            if (matchItem != null && !allData.Any(x => x.Category.ToLower() == userText))
+            // --- LOGIC 1: THÊM MỚI (Nếu bắt đầu bằng /add) ---
+            if (userText.ToLower().StartsWith("/add"))
             {
-                // Nếu tìm thấy item cụ thể (và user không chat trùng tên Category)
-                responseText = matchItem.ToDetailString();
+                try
+                {
+                    // Cắt chuỗi lệnh "/add" đi, chỉ lấy phần nội dung
+                    var content = userText.Substring(4).Trim();
+
+                    // Tách các trường bằng dấu gạch đứng |
+                    var parts = content.Split('|');
+
+                    if (parts.Length < 3) // Yêu cầu tối thiểu phải có Tên, Loại, Danh mục
+                    {
+                        await botClient.SendMessage(chatId,
+                            "⚠️ Sai cú pháp! Hãy nhập:\n/add Tên | Loại | Danh mục | Địa chỉ | TP | Note");
+                    }
+                    else
+                    {
+                        // Tạo object mới
+                        var newNote = new LocationNote
+                        {
+                            Name = parts[0].Trim(),
+                            Type = parts.Length > 1 ? parts[1].Trim() : "",
+                            Category = parts.Length > 2 ? parts[2].Trim() : "",
+                            Address = parts.Length > 3 ? parts[3].Trim() : "",
+                            City = parts.Length > 4 ? parts[4].Trim() : "",
+                            Note = parts.Length > 5 ? parts[5].Trim() : ""
+                        };
+
+                        // Gọi hàm lưu vào Google Sheet
+                        await sheetService.AddRowAsync(newNote);
+
+                        await botClient.SendMessage(chatId,
+                            $"✅ Đã thêm thành công:\n🏠 {newNote.Name}\n📂 {newNote.Category}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await botClient.SendMessage(chatId, $"❌ Lỗi khi thêm: {ex.Message}");
+                }
             }
             else
             {
-                // LOGIC 2: Tìm theo Category (food, chill...) -> Trả về danh sách
-                var byCategory = allData.Where(x => x.Category.ToLower().Contains(userText)).ToList();
-                if (byCategory.Count > 0)
+                var searchText = userText.ToLower();
+                // 1. Lấy toàn bộ dữ liệu từ Google Sheet
+                var allData = await sheetService.GetDataAsync();
+                string responseText = "";
+
+                // LOGIC 1: Tìm chính xác theo Tên (Name) hoặc Loại (Type) -> Trả về chi tiết
+                var matchItem = allData.FirstOrDefault(x =>
+                    x.Name.ToLower().Contains(searchText) ||
+                    x.Type.ToLower() == searchText);
+
+                if (matchItem != null && !allData.Any(x => x.Category.ToLower() == searchText))
                 {
-                    responseText = $"📂 **Danh mục: {userText}**\n";
-                    foreach (var item in byCategory)
-                    {
-                        responseText += $"- {item.Name} ({item.Type}) - {item.Address}\n";
-                    }
+                    // Nếu tìm thấy item cụ thể (và user không chat trùng tên Category)
+                    responseText = matchItem.ToDetailString();
                 }
                 else
                 {
-                    // LOGIC 3: Tìm theo Thành phố (City) hoặc Địa chỉ -> Trả về danh sách
-                    var byPlace = allData.Where(x =>
-                        x.City.ToLower().Contains(userText) ||
-                        x.Address.ToLower().Contains(userText)).ToList();
-
-                    if (byPlace.Count > 0)
+                    // LOGIC 2: Tìm theo Category (food, chill...) -> Trả về danh sách
+                    var byCategory = allData.Where(x => x.Category.ToLower().Contains(searchText)).ToList();
+                    if (byCategory.Count > 0)
                     {
-                        responseText = $"📍 **Tại: {userText}**\n";
-                        foreach (var item in byPlace)
+                        responseText = $"📂 **Danh mục: {searchText}**\n";
+                        foreach (var item in byCategory)
                         {
-                            responseText += $"- {item.Name} ({item.Category})\n";
+                            responseText += $"- {item.Name} ({item.Type}) - {item.Address}\n";
+                        }
+                    }
+                    else
+                    {
+                        // LOGIC 3: Tìm theo Thành phố (City) hoặc Địa chỉ -> Trả về danh sách
+                        var byPlace = allData.Where(x =>
+                            x.City.ToLower().Contains(searchText) ||
+                            x.Address.ToLower().Contains(searchText)).ToList();
+
+                        if (byPlace.Count > 0)
+                        {
+                            responseText = $"📍 **Tại: {searchText}**\n";
+                            foreach (var item in byPlace)
+                            {
+                                responseText += $"- {item.Name} ({item.Category})\n";
+                            }
                         }
                     }
                 }
-            }
 
-            // Nếu không tìm thấy gì hết
-            if (string.IsNullOrEmpty(responseText))
-            {
-                responseText = "Không tìm thấy thông tin phù hợp. Thử tìm 'food', 'hà nội' hoặc tên quán xem sao!";
-            }
+                // Nếu không tìm thấy gì hết
+                if (string.IsNullOrEmpty(responseText))
+                {
+                    responseText = "Không tìm thấy thông tin phù hợp. Thử tìm 'food', 'hà nội' hoặc tên quán xem sao!";
+                }
 
-            // Gửi kết quả về Telegram (ParseMode Markdown để in đậm)
-            await botClient.SendMessage(chatId, responseText, parseMode: ParseMode.Markdown);
+                // Gửi kết quả về Telegram (ParseMode Markdown để in đậm)
+                await botClient.SendMessage(chatId, responseText, parseMode: ParseMode.Markdown);
+            }
         }
     }
     catch (Exception ex)
