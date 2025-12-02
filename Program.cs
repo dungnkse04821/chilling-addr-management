@@ -48,7 +48,7 @@ app.MapPost("/api/webhook", async (HttpContext context, ITelegramBotClient botCl
             Converters = new List<Newtonsoft.Json.JsonConverter>
             {
                 new UnixDateTimeConverter(),
-                new StringEnumConverter()
+                new StringEnumConverter(new SnakeCaseNamingStrategy())
             }
         };
 

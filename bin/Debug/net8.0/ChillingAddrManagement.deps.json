@@ -9,8 +9,6 @@
       "ChillingAddrManagement/1.0.0": {
         "dependencies": {
           "Google.Apis.Sheets.v4": "1.72.0.3966",
-          "Microsoft.DotNet.ILCompiler": "8.0.20",
-          "Microsoft.NET.ILLink.Tasks": "8.0.20",
           "Newtonsoft.Json": "13.0.4",
           "Telegram.Bot": "22.7.5"
         },
@@ -65,7 +63,6 @@
           }
         }
       },
-      "Microsoft.DotNet.ILCompiler/8.0.20": {},
       "Microsoft.Extensions.Configuration.Abstractions/8.0.0": {
         "dependencies": {
           "Microsoft.Extensions.Primitives": "8.0.0"
@@ -93,7 +90,6 @@
         }
       },
       "Microsoft.Extensions.Primitives/8.0.0": {},
-      "Microsoft.NET.ILLink.Tasks/8.0.20": {},
       "Newtonsoft.Json/13.0.4": {
         "runtime": {
           "lib/net6.0/Newtonsoft.Json.dll": {
@@ -178,13 +174,6 @@
       "path": "google.apis.sheets.v4/1.72.0.3966",
       "hashPath": "google.apis.sheets.v4.1.72.0.3966.nupkg.sha512"
     },
-    "Microsoft.DotNet.ILCompiler/8.0.20": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-BnTvC6mpQ4rKzKzRpHb1M2SxsNGn6FiSa7xaJenuwXjmDqCAZWZg5noPnBtCqPTXYu8ng3FSIeVq9OY87bgLzw==",
-      "path": "microsoft.dotnet.ilcompiler/8.0.20",
-      "hashPath": "microsoft.dotnet.ilcompiler.8.0.20.nupkg.sha512"
-    },
     "Microsoft.Extensions.Configuration.Abstractions/8.0.0": {
       "type": "package",
       "serviceable": true,
@@ -226,13 +215,6 @@
       "sha512": "sha512-bXJEZrW9ny8vjMF1JV253WeLhpEVzFo1lyaZu1vQ4ZxWUlVvknZ/+ftFgVheLubb4eZPSwwxBeqS1JkCOjxd8g==",
       "path": "microsoft.extensions.primitives/8.0.0",
       "hashPath": "microsoft.extensions.primitives.8.0.0.nupkg.sha512"
-    },
-    "Microsoft.NET.ILLink.Tasks/8.0.20": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-Rhcto2AjGvTO62+/VTmBpumBOmqIGp7nYEbTbmEXkCq4yPGxV8whju3/HsIA/bKyo2+DggaYk5+/8sxb1AbPTw==",
-      "path": "microsoft.net.illink.tasks/8.0.20",
-      "hashPath": "microsoft.net.illink.tasks.8.0.20.nupkg.sha512"
     },
     "Newtonsoft.Json/13.0.4": {
       "type": "package",
