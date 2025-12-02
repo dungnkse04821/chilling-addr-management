@@ -13,10 +13,8 @@ namespace ChillingAddrManagement
         // Tên Sheet (Tab) trong bảng tính
         private const string SheetName = "Sheet1";
 
-        // Đường dẫn đến file JSON Service Account
         private const string PathToServiceAccountKey = "service_account.json";
 
-        // 1. Hàm tạo Service (Tách ra để tái sử dụng)
         private SheetsService GetService()
         {
             GoogleCredential credential;
@@ -73,19 +71,18 @@ namespace ChillingAddrManagement
 
             // Tạo danh sách giá trị cần thêm (Thứ tự phải đúng với cột trong Excel)
             var objectList = new List<object>()
-        {
-            note.Name,
-            note.Type,
-            note.Category,
-            note.Address,
-            note.City,
-            note.Note
-        };
+            {
+                note.Name,
+                note.Type,
+                note.Category,
+                note.Address,
+                note.City,
+                note.Note
+            };
 
             var valueRange = new ValueRange();
             valueRange.Values = new List<IList<object>> { objectList };
 
-            // AppendRequest: Yêu cầu nối thêm vào cuối
             var appendRequest = service.Spreadsheets.Values.Append(valueRange, SpreadsheetId, $"{SheetName}!A:F");
 
             // USER_ENTERED: Để Google tự hiểu định dạng (số, ngày tháng...)
