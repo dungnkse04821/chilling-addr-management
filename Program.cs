@@ -25,13 +25,17 @@ builder.Services.AddHttpClient("telegram_bot_client")
     });
 
 builder.Services.AddSingleton<GoogleSheetService>();
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<BotUpdateHandler>();
 
 var app = builder.Build();
 
 // 3. TẠO WEBHOOK ENDPOINT
 // Đây là URL mà Telegram sẽ gọi mỗi khi có tin nhắn
 // Ví dụ: https://ten-mien-cua-ban.com/api/webhook
-app.MapPost("/api/webhook", async (HttpContext context, ITelegramBotClient botClient, GoogleSheetService sheetService) =>
+app.MapPost("/api/webhook", async (
+    HttpContext context,
+    BotUpdateHandler botHandler) => 
 {
     try
     {

@@ -35,13 +35,11 @@ public class BotUpdateHandler
             return;
         }
 
-        // 3. Lấy trạng thái Session
         if (!_cache.TryGetValue(cacheKey, out UserSession session))
         {
             session = new UserSession();
         }
 
-        // 4. Máy quy đổi trạng thái (State Machine)
         switch (session.Step)
         {
             case "NONE":
