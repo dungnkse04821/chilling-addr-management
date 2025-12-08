@@ -10,7 +10,6 @@ public class BotUpdateHandler
     private readonly GoogleSheetService _sheetService;
     private readonly IMemoryCache _cache;
 
-    // Dependency Injection sẽ tự động điền các tham số này vào
     public BotUpdateHandler(ITelegramBotClient botClient, GoogleSheetService sheetService, IMemoryCache cache)
     {
         _botClient = botClient;
@@ -110,14 +109,12 @@ public class BotUpdateHandler
         }
     }
 
-    // Tách hàm Tra cứu ra riêng cho gọn
     private async Task HandleSearchAsync(long chatId, string keyword)
     {
         var allData = await _sheetService.GetDataAsync();
         string responseText = "";
         keyword = keyword.ToLower();
 
-        // Logic tra cứu cũ của bạn
         var matchItem = allData.FirstOrDefault(x => x.Name.ToLower().Contains(keyword));
         if (matchItem != null)
         {
@@ -125,7 +122,6 @@ public class BotUpdateHandler
         }
         else
         {
-            // Code tìm category/city... (Rút gọn cho ví dụ)
             var list = allData.Where(x => x.Category.ToLower().Contains(keyword)).ToList();
             if (list.Any()) responseText = $"Tìm thấy {list.Count} quán thuộc nhóm {keyword}";
             else responseText = "Không tìm thấy thông tin phù hợp.";
