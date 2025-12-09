@@ -19,8 +19,8 @@ public class BotUpdateHandler
 
     public async Task HandleUpdateAsync(Update update)
     {
-        // 1. Lấy message an toàn
         var message = update.Message ?? update.ChannelPost;
+
         if (message == null || string.IsNullOrEmpty(message.Text)) return;
 
         var chatId = message.Chat.Id;
@@ -51,7 +51,6 @@ public class BotUpdateHandler
                 }
                 else
                 {
-                    // --- LOGIC TRA CỨU ---
                     await HandleSearchAsync(chatId, userText);
                 }
                 break;
@@ -74,21 +73,21 @@ public class BotUpdateHandler
                 session.DraftData.Category = userText;
                 session.Step = "WAITING_ADDRESS";
                 _cache.Set(cacheKey, session);
-                await _botClient.SendMessage(chatId, "📍 <b>Địa chỉ ở đâu?</b> (Nhập 'k' nếu không nhớ):", parseMode: ParseMode.Html);
+                await _botClient.SendMessage(chatId, "📍 <b>Địa chỉ?</b> (Nhập 'k' để bỏ qua):", parseMode: ParseMode.Html);
                 break;
 
             case "WAITING_ADDRESS":
                 session.DraftData.Address = userText == "k" ? "" : userText;
                 session.Step = "WAITING_CITY";
                 _cache.Set(cacheKey, session);
-                await _botClient.SendMessage(chatId, "🏙 <b>Thành phố nào?</b>:", parseMode: ParseMode.Html);
+                await _botClient.SendMessage(chatId, "🏙 <b>Thành phố?</b>:", parseMode: ParseMode.Html);
                 break;
 
             case "WAITING_CITY":
                 session.DraftData.City = userText;
                 session.Step = "WAITING_NOTE";
                 _cache.Set(cacheKey, session);
-                await _botClient.SendMessage(chatId, "📝 <b>Ghi chú gì không?</b> (Nhập 'k' nếu không có):", parseMode: ParseMode.Html);
+                await _botClient.SendMessage(chatId, "📝 <b>Ghi chú?</b> (Nhập 'k' để bỏ qua):", parseMode: ParseMode.Html);
                 break;
 
             case "WAITING_NOTE":
@@ -99,7 +98,7 @@ public class BotUpdateHandler
                 // Gọi service lưu data
                 await _sheetService.AddRowAsync(session.DraftData);
 
-                _cache.Remove(cacheKey); // Xóa session
+                _cache.Remove(cacheKey);
                 await _botClient.SendMessage(chatId,
                     $"✅ <b>Đã lưu thành công!</b>\n🏠 {session.DraftData.Name}",
                     parseMode: ParseMode.Html);
