@@ -112,10 +112,10 @@ public class BotUpdateHandler
         string responseText = "";
         keyword = keyword.ToLower();
 
-        var matchItem = allData.FirstOrDefault(x => x.Name.ToLower().Contains(keyword));
-        if (matchItem != null)
+        var matchItem = allData.Where(x => x.Name.ToLower().Contains(keyword));
+        if (matchItem.Any())
         {
-            responseText = matchItem.ToDetailString();
+            responseText = string.Join(Environment.NewLine + "--------------------" + Environment.NewLine, matchItem.Select(x => x.ToDetailString()).ToArray());
         }
         else
         {
