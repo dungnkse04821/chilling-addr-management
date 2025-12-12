@@ -112,17 +112,32 @@ public class BotUpdateHandler
         string responseText = "";
         keyword = keyword.ToLower();
 
-        var matchItem = allData.Where(x => x.Name.ToLower().Contains(keyword));
-        if (matchItem.Any())
+        var findExact = keyword.Split(' ')[0];
+        IEnumerable<LocationNote>? matchItem = null;
+        switch (findExact)
         {
-            responseText = string.Join(Environment.NewLine + "--------------------" + Environment.NewLine, matchItem.Select(x => x.ToDetailString()).ToArray());
+            case "/city":
+                matchItem = allData.Where(x => x.City.ToLower().Contains(keyword));
+                if (matchItem.Any())
+                {
+                    responseText = string.Join(Environment.NewLine + "---------------------------" + Environment.NewLine, matchItem.Select(x => x.ToDetailString()).ToArray());
+                }
+                break;
+            default:
+                matchItem = allData.Where(x => x.Name.ToLower().Contains(keyword) || x.Type.ToLower().Contains(keyword));
+                if (matchItem.Any())
+                {
+                    responseText = string.Join(Environment.NewLine + "---------------------------" + Environment.NewLine, matchItem.Select(x => x.ToDetailString()).ToArray());
+                }
+                else
+                {
+                    var list = allData.Where(x => x.Category.ToLower().Contains(keyword)).ToList();
+                    if (list.Any()) responseText = $"Tìm thấy {list.Count} quán thuộc nhóm {keyword}";
+                    else responseText = "Không tìm thấy thông tin phù hợp.";
+                }
+                break;
         }
-        else
-        {
-            var list = allData.Where(x => x.Category.ToLower().Contains(keyword)).ToList();
-            if (list.Any()) responseText = $"Tìm thấy {list.Count} quán thuộc nhóm {keyword}";
-            else responseText = "Không tìm thấy thông tin phù hợp.";
-        }
+
 
         await _botClient.SendMessage(chatId, responseText, parseMode: ParseMode.Markdown);
     }
