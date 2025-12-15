@@ -113,31 +113,95 @@ public class BotUpdateHandler
         keyword = keyword.ToLower();
 
         var findExact = keyword.Split(' ')[0];
-        IEnumerable<LocationNote>? matchItem = null;
+
+        string FormatResult(IEnumerable<LocationNote> items)
+        {
+            if (!items.Any()) return "📭 Không tìm thấy kết quả nào theo tiêu chí này.";
+
+            return string.Join(
+                Environment.NewLine + "---------------------------" + Environment.NewLine,
+                items.Select(x => x.ToDetailString())
+            );
+        }
+
+        IEnumerable<LocationNote> searchResult;
+
         switch (findExact)
         {
-            case "/city":
-                matchItem = allData.Where(x => x.City.ToLower().Contains(keyword));
-                if (matchItem.Any())
-                {
-                    responseText = string.Join(Environment.NewLine + "---------------------------" + Environment.NewLine, matchItem.Select(x => x.ToDetailString()).ToArray());
-                }
+            // --- Tìm theo TÊN ---
+            case "/name":
+            case "/ten":
+                searchResult = allData.Where(x => x.Name.ToLower().Contains(keyword));
+                responseText = FormatResult(searchResult);
                 break;
+
+            // --- Tìm theo THÀNH PHỐ ---
+            case "/city":
+            case "/tp":
+                searchResult = allData.Where(x => x.City.ToLower().Contains(keyword));
+                responseText = FormatResult(searchResult);
+                break;
+
+            // --- Tìm theo LOẠI (Phở, Camping, Cafe...) ---
+            case "/type":
+            case "/loai":
+                searchResult = allData.Where(x => x.Type.ToLower().Contains(keyword));
+                responseText = FormatResult(searchResult);
+                break;
+
+            // --- Tìm theo DANH MỤC (Food, Chill...) ---
+            case "/cate":
+            case "/category":
+            case "/danhmuc":
+                searchResult = allData.Where(x => x.Category.ToLower().Contains(keyword));
+                responseText = FormatResult(searchResult);
+                break;
+
+            // --- Tìm theo ĐỊA CHỈ ---
+            case "/addr":
+            case "/address":
+            case "/diachi":
+                searchResult = allData.Where(x => x.Address.ToLower().Contains(keyword));
+                responseText = FormatResult(searchResult);
+                break;
+
+            // --- Tìm theo GHI CHÚ ---
+            case "/note":
+            case "/ghichu":
+                searchResult = allData.Where(x => x.Note.ToLower().Contains(keyword));
+                responseText = FormatResult(searchResult);
+                break;
+
+            // --- TÌM KIẾM THÔNG MINH (Mặc định khi không có lệnh) ---
             default:
-                matchItem = allData.Where(x => x.Name.ToLower().Contains(keyword) || x.Type.ToLower().Contains(keyword));
-                if (matchItem.Any())
+                // Ưu tiên 1: Tìm theo Tên hoặc Loại
+                searchResult = allData.Where(x => x.Name.ToLower().Contains(keyword) || x.Type.ToLower().Contains(keyword));
+
+                if (searchResult.Any())
                 {
-                    responseText = string.Join(Environment.NewLine + "---------------------------" + Environment.NewLine, matchItem.Select(x => x.ToDetailString()).ToArray());
+                    responseText = FormatResult(searchResult);
                 }
                 else
                 {
-                    var list = allData.Where(x => x.Category.ToLower().Contains(keyword)).ToList();
-                    if (list.Any()) responseText = $"Tìm thấy {list.Count} quán thuộc nhóm {keyword}";
-                    else responseText = "Không tìm thấy thông tin phù hợp.";
+                    // Ưu tiên 2: Nếu không thấy tên/loại thì tìm theo Danh mục
+                    var listByCategory = allData.Where(x => x.Category.ToLower().Contains(keyword)).ToList();
+
+                    if (listByCategory.Any())
+                    {
+                        // Với danh mục, chỉ hiện tóm tắt danh sách để đỡ dài
+                        responseText = $"📂 **Tìm thấy {listByCategory.Count} thông tin thuộc nhóm '{keyword}':**\n\n";
+                        foreach (var item in listByCategory)
+                        {
+                            responseText += $"- {item.Name} ({item.Type}) - {item.City}\n";
+                        }
+                    }
+                    else
+                    {
+                        responseText = "❌ Không tìm thấy thông tin phù hợp. Hãy thử tìm theo tên món, hoặc dùng lệnh /city, /type...";
+                    }
                 }
                 break;
         }
-
 
         await _botClient.SendMessage(chatId, responseText, parseMode: ParseMode.Markdown);
     }
